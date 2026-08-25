@@ -150,9 +150,9 @@ from my_player import MyPlayer
 
 # Init the tester
 tester = Tester()
-tester.verbose_level = 2 # 0: no output, 1: Each game results, 2: Each move summary
-tester.delay_between_moves = 0.1 # Delay between each move in seconds
-tester.display_board = True # Display a graphical view of the board in a window
+tester.verbose_level = 2  # 0: no output, 1: Each game results, 2: Each move summary
+tester.delay_between_moves = 0.1  # Delay between each move in seconds
+tester.display_board = True  # Display a graphical view of the board in a window
 
 # Init the players
 my_player = MyPlayer(1)
@@ -202,21 +202,21 @@ We provide some utilities to help you manipulate the board.
 
 ```python
 # Game information
-board.nb_players # Number of players in the game (2 or 3)
-board.nb_pawns # Number of pawns (4 or 6) depending on the game mode
-board.player_turn # The number of the player currently playing (between 1 and 3)
-board.turn_number # Number of turn played since the beginning of the game
+board.nb_players  # Number of players in the game (2 or 3)
+board.nb_pawns  # Number of pawns (4 or 6) depending on the game mode
+board.player_turn  # The number of the player currently playing (between 1 and 3)
+board.turn_number  # Number of turn played since the beginning of the game
 
 # Pawns
-board_pawns = board.pawns # The other pawns on the board
-pawn = board_pawns[0] # The first pawn on the board
-pawn.pos # The position a pawn on the board (x, y), or (None, None) if it is not placed yet
-pawn.number # The number of the  pawn on the board (between 1 and 6) depending on the game mode
-pawn.player_number # The number of the player owning the pawn (between 1 and 3) depending on the game mode
+board_pawns = board.pawns  # The other pawns on the board
+pawn = board_pawns[0]  # The first pawn on the board
+pawn.pos  # The position a pawn on the board (x, y), or (None, None) if it is not placed yet
+pawn.number  # The number of the  pawn on the board (between 1 and 6) depending on the game mode
+pawn.player_number  # The number of the player owning the pawn (between 1 and 3) depending on the game mode
 
 
 # Board
-board_array = board.board # A 5x5 array of integers representing the board
+board_array = board.board  # A 5x5 array of integers representing the board
 # 0: empty
 # 1: tower level 1
 # 2: tower level 2
@@ -228,10 +228,12 @@ available_move_positions = board.get_possible_movement_positions(pawn)
 available_build_positions = board.get_possible_building_positions(pawn)
 
 # Board control
-board.place_pawn(pos) # Place the current playing pawn on the board
-board.play_move(pawn.order, move_position, build_position) # Play a move (move and build) with the current playing pawn, and go to the next turn
-board.is_game_over() # True if the game is over
-board.winner_player_number # The number of the player who won the game
+board.place_pawn(pos)  # Place the current playing pawn on the board
+board.play_move(
+    pawn.order, move_position, build_position
+)  # Play a move (move and build) with the current playing pawn, and go to the next turn
+board.is_game_over()  # True if the game is over
+board.winner_player_number  # The number of the player who won the game
 
 # Other
 board.is_position_valid(position)
@@ -240,11 +242,12 @@ board.is_position_within_board(pos)
 board.is_position_adjacent(pos1, pos2)
 board.is_pawn_on_position(pos)
 board.is_build_possible(builder_pos, build_pos)
-board.copy() # Create a copy of the board, useful to test moves
-print(board) # Print the board
+board.copy()  # Create a copy of the board, useful to test moves
+print(board)  # Print the board
 
 # Display
 from santorinai.board_displayer.board_displayer import init_window, update_board
+
 window = init_window([player1.name(), player2.name()])
 update_board(window, board)
 ```
