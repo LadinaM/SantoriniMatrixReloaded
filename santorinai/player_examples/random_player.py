@@ -1,5 +1,6 @@
-from santorinai import Player, Board, Pawn
 from random import choice
+
+from santorinai import Board, Pawn, Player
 
 
 class RandomPlayer(Player):

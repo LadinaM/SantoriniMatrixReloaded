@@ -243,13 +243,13 @@ class TestBoardTwoPlayersGame(unittest.TestCase):
 
         # ==== Pawns Moves ====
         # Pawn 1 is blocked
-        self.assertEqual(
-            len(board.get_possible_movement_positions(board.get_playing_pawn(1))), 0
-        )
+        pawn1 = board.get_playing_pawn(1)
+        assert pawn1 is not None
+        self.assertEqual(len(board.get_possible_movement_positions(pawn1)), 0)
         # But pawn 2 can move
-        self.assertGreater(
-            len(board.get_possible_building_positions(board.get_playing_pawn(2))), 0
-        )
+        pawn2 = board.get_playing_pawn(2)
+        assert pawn2 is not None
+        self.assertGreater(len(board.get_possible_building_positions(pawn2)), 0)
         # Player 1 try to move pawn 1 but fails
         move_ok, reason = board.play_move(1, (None, None), (None, None))
         self.assertFalse(move_ok)

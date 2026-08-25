@@ -1,7 +1,7 @@
-from santorinai.tester import Tester
-from santorinai.player_examples.random_player import RandomPlayer
-from santorinai.player_examples.first_choice_player import FirstChoicePlayer
 from santorinai.player_examples.basic_player import BasicPlayer
+from santorinai.player_examples.first_choice_player import FirstChoicePlayer
+from santorinai.player_examples.random_player import RandomPlayer
+from santorinai.tester import Tester
 
 # This script is used to compare the performance of a list of players.
 # It will display a table with the results of each player against each other player.

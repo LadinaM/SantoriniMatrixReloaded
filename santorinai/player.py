@@ -2,7 +2,6 @@ from abc import abstractmethod
 
 from santorinai.board import Board
 from santorinai.pawn import Pawn
-from typing import Tuple
 
 
 class Player:
@@ -19,10 +18,9 @@ class Player:
         """
         The name of the player
         """
-        pass
 
     @abstractmethod
-    def place_pawn(self, board: Board, pawn: Pawn) -> Tuple[int, int]:
+    def place_pawn(self, board: Board, pawn: Pawn) -> tuple[int, int]:
         """
         Place a pawn given a board
         :param board: the board
@@ -32,10 +30,9 @@ class Player:
         Return example: (2, 2) means that the player wants to place
         his pawn at the center of the board
         """
-        pass
 
     @abstractmethod
-    def play_move(self, board: Board) -> Tuple[int, Tuple[int, int], Tuple[int, int]]:
+    def play_move(self, board: Board) -> tuple[int, tuple[int, int], tuple[int, int]]:
         """
         Choose a pawn and play a move given a board
         :param board: the board
@@ -48,4 +45,3 @@ class Player:
         Return example: (2, 2), (2, 3) means that the player wants to move the
         pawn at center of the board and build a tower one tile above
         """
-        pass

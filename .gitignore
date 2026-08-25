@@ -5,3 +5,5 @@ build_package/
 dist/
 SantorinAI.egg-info/
 build/
+
+.idea/

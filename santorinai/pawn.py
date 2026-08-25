@@ -1,6 +1,3 @@
-from typing import Tuple
-
-
 class Pawn:
     def __init__(self, number: int, order: int, player_number: int):
         """
@@ -24,16 +21,16 @@ class Pawn:
         self.number = number  # 1 to 6 depending on the number of pawns
         self.order = order  # 1 or 2
         self.player_number = player_number  # 1, 2 or 3 depending on players number
-        self.pos = (None, None)
+        self.pos: tuple[int | None, int | None] = (None, None)
 
-    def move(self, new_pos: Tuple[int, int]):
+    def move(self, new_pos: tuple[int | None, int | None]):
         """
         Move the pawn to the new position
         :param new_pos: the new position of the pawn
         """
         self.pos = new_pos
 
-    def copy(self) -> "Pawn":
+    def copy(self) -> Pawn:
         """
         Return a copy of the pawn
         :return: a copy of the pawn

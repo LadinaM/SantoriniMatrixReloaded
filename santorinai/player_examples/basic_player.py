@@ -1,8 +1,8 @@
-from santorinai.player import Player
+from random import choice
+
 from santorinai.board import Board
 from santorinai.pawn import Pawn
-from random import choice
-from typing import Tuple
+from santorinai.player import Player
 
 
 class BasicPlayer(Player):
@@ -24,13 +24,14 @@ class BasicPlayer(Player):
     def name(self):
         return "Extra BaThick!"
 
-    def get_ally_pawn(self, board: Board, our_pawn: Pawn) -> Tuple[Pawn, None]:
+    def get_ally_pawn(self, board: Board, our_pawn: Pawn) -> Pawn | None:
         for pawn in board.pawns:
             if (
                 pawn.number != our_pawn.number
                 and pawn.player_number == our_pawn.player_number
             ):
                 return pawn
+        return None
 
     def get_enemy_pawns(self, board, our_pawn):
         pawns = []
@@ -77,7 +78,7 @@ class BasicPlayer(Player):
         for idx, pawn in enumerate(board.get_player_pawns(self.player_number)):
             if pawn.pos[0] is None or pawn.pos[1] is None:
                 # Pawn is not placed yet
-                raise Exception("Pawn is not placed yet")
+                raise RuntimeError("Pawn is not placed yet")
 
             available_pawns.append(pawn)
             available_positions = board.get_possible_movement_positions(pawn)
@@ -120,7 +121,7 @@ class BasicPlayer(Player):
                             )
 
         # Move up if we can
-        if best_spot:
+        if best_spot is not None and best_spot_pawn_idx is not None:
             if self.log_level:
                 print("Moving up")
             best_pawn = available_pawns[best_spot_pawn_idx]

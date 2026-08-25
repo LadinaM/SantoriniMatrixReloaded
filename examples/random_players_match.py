@@ -1,7 +1,7 @@
-from santorinai.tester import Tester
-from santorinai.player_examples.random_player import RandomPlayer
-from santorinai.player_examples.first_choice_player import FirstChoicePlayer
 from santorinai.player_examples.basic_player import BasicPlayer
+from santorinai.player_examples.first_choice_player import FirstChoicePlayer
+from santorinai.player_examples.random_player import RandomPlayer
+from santorinai.tester import Tester
 
 # Init the tester
 tester = Tester()

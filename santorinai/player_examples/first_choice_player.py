@@ -1,6 +1,6 @@
-from santorinai.player import Player
 from santorinai.board import Board
 from santorinai.pawn import Pawn
+from santorinai.player import Player
 
 
 class FirstChoicePlayer(Player):
@@ -39,7 +39,7 @@ class FirstChoicePlayer(Player):
         available_build_positions = board.get_possible_building_positions(pawn)
         if len(available_build_positions) == 0:
             # The pawn cannot build
-            raise Exception("Pawn cannot build")
+            raise RuntimeError("Pawn cannot build")
 
         # Their is always at least one position available
         my_build_choice = available_build_positions[0]

@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+
 from santorinai.board import Board
 
 # Board display util
@@ -200,17 +201,17 @@ def update_board(window: sg.Window, board: Board):
 
             # Pawns
             for pawn in board.pawns:
-                x, y = pawn.pos
-                if (x, y) == (None, None):
+                px, py = pawn.pos
+                if px is None or py is None:
                     continue
 
-                if (x, y) != (i, j):
+                if (px, py) != (i, j):
                     continue
 
-                level = board.board[x][y]
+                level = board.board[px][py]
                 PAWN_SIZE = 50
-                x_pos = (y - x) * TILE_SIZE / 2 + SIZE_X / 2
-                y_pos = (y + x) * TILE_SIZE / 5.2 + cube_heigth * level + PAWN_SIZE
+                x_pos = (py - px) * TILE_SIZE / 2 + SIZE_X / 2
+                y_pos = (py + px) * TILE_SIZE / 5.2 + cube_heigth * level + PAWN_SIZE
 
                 color = pawns_colors[pawn.player_number]
                 line_width = 2
@@ -239,11 +240,8 @@ def update_board(window: sg.Window, board: Board):
                     color="white",
                 )
 
-    event, values = window.read(timeout=10)
-
-    if event == sg.WIN_CLOSED:
-        return True
-    return False
+    event, _values = window.read(timeout=10)
+    return event == sg.WIN_CLOSED
 
 
 def close_window(window):
@@ -252,9 +250,9 @@ def close_window(window):
 
 if __name__ == "__main__":
     board = Board(2)
-    window = init_window()
+    window = init_window(["Player 1", "Player 2"])
     while True:
-        exit = update_board(board, window)
-        if exit:
+        should_exit = update_board(window, board)
+        if should_exit:
             break
     close_window(window)

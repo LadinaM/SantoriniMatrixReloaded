@@ -1,27 +1,59 @@
 ![Graphical output example](./images/headban.png)
 
-# SantorinAI
+# Santorini Matrix Reloaded
 
-AI Player tester for the Santorini game
+We aim at this project to build a multi-agent reinforcement learning system that plays the board game Santorini by itself.
+
+The project is forked from [this](https://github.com/Tomansion/SantorinAI) project that includes only the base game. All reinforcement learning and extensions are done by us.
 
 ## How to use
 
 ### 1. Install
 
-With pip:
+This project uses [uv](https://docs.astral.sh/uv/) for dependency and environment management.
+
+Install uv if you do not have it yet:
 
 ```bash
-pip install --upgrade santorinai
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-You can also clone the repository and install it manually:
+Clone the repository and sync the project (creates a virtualenv and installs `santorinai` plus dependencies, including the `dev` group):
 
 ```bash
-git clone https://github.com/Tomansion/SantorinAI.git
-cd SantorinAI
-pip install -r requirements.txt
-pip install .
+git clone https://github.com/LadinaM/SantoriniMatrixReloaded.git
+cd SantoriniMatrixReloaded
+uv sync
 ```
+
+Run scripts or examples with:
+
+```bash
+uv run examples/random_players_match.py
+```
+
+### Coding standards
+
+Development tools are provided via the `dev` dependency group ([Ruff](https://docs.astral.sh/ruff/) for linting/formatting, [ty](https://docs.astral.sh/ty/) for type checking).
+
+Install the [pre-commit](https://pre-commit.com/) hooks once after cloning (runs Ruff and ty on every commit):
+
+```bash
+uv run pre-commit install
+```
+
+Run the checks manually:
+
+```bash
+uv run pre-commit run --all-files
+# or
+uv run ruff check .
+uv run ruff format .
+uv run ty check
+```
+
+The same checks are also enforced in GitHub Actions on pull requests into `main`.
+
 
 ### 2. Create a player
 
@@ -228,6 +260,5 @@ Board 2D Gui library: [PySimpleGUI](https://www.pysimplegui.org/en/latest/)
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details
 
 ## Contributors
-
-- [Tomansion](http://github.com/tomansion)
-- [daniPclos](https://github.com/daniPclos) (Implementation of the pawn selection on move feature)
+* Columbus-droid
+* LadinaM

@@ -1,11 +1,12 @@
-from santorinai.player import Player
+from time import sleep
+
 from santorinai.board import Board
 from santorinai.board_displayer.board_displayer import (
+    close_window,
     init_window,
     update_board,
-    close_window,
 )
-from time import sleep
+from santorinai.player import Player
 
 
 class Tester:
