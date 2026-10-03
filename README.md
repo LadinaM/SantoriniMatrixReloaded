@@ -1,267 +1,190 @@
-![Graphical output example](./images/headban.png)
+![Santorini Matrix Reloaded](./images/headban.png)
 
 # Santorini Matrix Reloaded
 
-We aim at this project to build a multi-agent reinforcement learning system that plays the board game Santorini by itself.
+We're teaching a computer to play the board game Santorini on its own, using
+reinforcement learning (PPO and MCTS). This repository contains the game
+engine, a few simple opponents, a training environment and tools to let
+agents play against each other.
 
-The project is forked from [this](https://github.com/Tomansion/SantorinAI) project that includes only the base game. All reinforcement learning and extensions are done by us.
+The project started as a fork of
+[SantorinAI](https://github.com/Tomansion/SantorinAI). Since then we've
+rewritten the engine, the agents and the training setup with learning in
+mind.
 
-## How to use
+## Getting started
 
-### 1. Install
-
-This project uses [uv](https://docs.astral.sh/uv/) for dependency and environment management.
-
-Install uv if you do not have it yet:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Clone the repository and sync the project (creates a virtualenv and installs `santorinai` plus dependencies, including the `dev` group):
+We use [uv](https://docs.astral.sh/uv/) to manage Python and the
+dependencies.
 
 ```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh   # only if you don't have uv yet
 git clone https://github.com/LadinaM/SantoriniMatrixReloaded.git
 cd SantoriniMatrixReloaded
 uv sync
 ```
 
-Run scripts or examples with:
+To check that everything works, watch two agents play:
 
 ```bash
-uv run examples/random_players_match.py
+uv run scripts/watch_game.py greedy minimax
 ```
 
-### Coding standards
+You can change the agents via cmd options.
 
-Development tools are provided via the `dev` dependency group ([Ruff](https://docs.astral.sh/ruff/) for linting/formatting, [ty](https://docs.astral.sh/ty/) for type checking).
+## What's where
 
-Install the [pre-commit](https://pre-commit.com/) hooks once after cloning (runs Ruff and ty on every commit):
+```
+santorinai/
+├── core.py        the game itself: rules, moves, board representation
+├── agents.py      what an agent has to look like
+├── players/       agents to play against: random, first choice, greedy, minimax
+├── env.py         Gymnasium environment for training
+└── match.py       play games between agents and collect results
+scripts/           watch a game, run a tournament, measure engine speed
+documentation/     design notes (engine, minimax) and the project presentation
+test/              unit tests
+```
+
+Nothing in the package needs a screen, so training also runs on servers or
+Colab. If you want to know why the engine is built the way it is, have a look
+at [documentation/engine_core.md](documentation/engine_core.md).
+
+## The rules in short
+
+Two players, two workers each, no god powers.
+
+1. The players take turns placing their workers on free cells (p0, p1, p0,
+   p1). The agents learn where to place them too.
+2. On your turn you move one worker to a neighbouring cell (any of the 8
+   directions) that has no worker or dome on it and is at most one level
+   higher. Then that worker builds one level on a cell next to it. A level
+   on top of level 3 is a dome.
+3. You win by stepping up onto level 3, or when your opponent can't move.
+
+## Using the engine
+
+### Playing moves
+
+```python
+from santorinai import GameState
+
+state = GameState.new_game()  # starts with placing the workers
+moves = state.legal_actions()  # 0..127 are moves, 128..152 placements
+state.step(moves[0])  # play a move
+print(state)  # the board as text
+```
+
+For neural networks there's also `state.observation()`, which returns the
+board as a (9, 5, 5) array from the point of view of the player to move,
+and `state.action_mask()`, which marks the legal moves among all 153.
+`state.clone()` makes a cheap copy, which is what tree search needs.
+
+### Writing your own agent
+
+An agent only needs a `select_action` method that gets the current state and
+returns one of the legal moves:
+
+```python
+import random
+
+from santorinai import Agent, GameState
+
+
+class MyAgent(Agent):
+    def select_action(self, state: GameState) -> int:
+        winning = [a for a in state.legal_actions() if state.is_winning_action(a)]
+        return winning[0] if winning else random.choice(state.legal_actions())
+```
+
+### Letting agents play
+
+```python
+from santorinai.match import play_game, play_match
+from santorinai.agents import GreedyAgent, MinimaxAgent, RandomAgent
+
+# One game: the first agent is player 0 and moves first.
+result = play_game([GreedyAgent(), RandomAgent()])
+print(result.winner, result.reason, result.plies)
+
+# 100 games, swapping who goes first every game.
+match = play_match(MinimaxAgent(depth=2), GreedyAgent(), num_games=100)
+print(f"minimax won {match.win_rate_a:.0%}")
+```
+
+### Training
+
+`SantoriniEnv` is a normal Gymnasium environment. The opponent is part of
+the environment: you pass in any agent, and it answers every move of the
+agent you're training.
+
+```python
+from santorinai.env import SantoriniEnv
+from santorinai.agents import GreedyAgent
+
+env = SantoriniEnv(opponent=GreedyAgent())
+obs, info = env.reset(seed=0)
+obs, reward, terminated, truncated, info = env.step(env.action_masks().argmax())
+```
+
+The legal moves are in `env.action_masks()`, which is what sb3-contrib's
+`MaskablePPO` expects.
+
+## Examples
+
+```bash
+uv run scripts/watch_game.py minimax greedy       # watch a game move by move
+uv run scripts/watch_game.py random first_choice --quiet --seed 3
+uv run scripts/compare_agents.py                  # every agent against every other
+```
+
+`watch_game.py --help` lists the available agents.
+
+## Benchmarks
+
+We keep track of how fast the engine and the minimax agent are, so we can see
+whether a change actually helped:
+
+```bash
+uv run scripts/benchmark_engine.py --label "what changed"   # measure and save
+uv run scripts/benchmark_engine.py --history                # all runs so far
+```
+
+Each run is compared with the last one from the same computer and then added
+to `benchmarks/results.jsonl` with the commit it ran on. Use `--quick` to skip
+the slow minimax depth 3 and `--no-save` to just try something out. Timings
+from different computers aren't comparable, so the comparison only looks at
+runs from your own machine.
+
+## Development
+
+The `dev` dependency group brings [Ruff](https://docs.astral.sh/ruff/) for
+linting and formatting and [ty](https://docs.astral.sh/ty/) for type
+checking. Install the pre-commit hooks once after cloning, then they run on
+every commit:
 
 ```bash
 uv run pre-commit install
 ```
 
-Run the checks manually:
+To run everything by hand:
 
 ```bash
-uv run pre-commit run --all-files
-# or
+uv run python -m unittest discover -s test
 uv run ruff check .
 uv run ruff format .
 uv run ty check
 ```
 
-The same checks are also enforced in GitHub Actions on pull requests into `main`.
-
-
-### 2. Create a player
-
-Create an override of the `Player` class in the `santorinai.player.py` file.
-
-```python
-from santorinai import Board, Pawn, Player
-from random import choice
-
-
-class MyPlayer(Player):
-    """
-    My player description
-    """
-
-    def __init__(self, player_number):
-        super().__init__(player_number)
-        # Do some initialization here
-
-    def name(self):
-        """
-        Provide a name to your player
-        """
-        return "My player name"
-
-    # Placement of the pawns
-    def place_pawn(self, board: Board, pawn: Pawn):
-        """
-        Place a pawn
-
-        Args:
-            board (Board): A copy of the current board state
-            pawn (Pawn): The pawn to place
-
-        Returns:
-            tuple: A position on the 5x5 board
-        """
-        # Do some magic here to choose a position
-        my_choice = choice(board.get_possible_movement_positions(pawn))
-
-        return my_choice  # A position on the 5x5 board
-
-    # Movement and building
-    def play_move(self, board: Board):
-        """
-        Play a move
-
-        Args:
-            board (Board): A copy of the current board state
-
-        Returns:
-            tuple: (pawn_number, move_position, build_position)
-        """
-
-        # This function is called when the player needs to play
-
-        my_pawn_1 = board.get_playing_pawn(1)
-        my_pawn_2 = board.get_playing_pawn(2)
-
-        board.board  # A 5x5 array of integers representing the board
-        # 0: empty
-        # 1: tower level 1
-        # 2: tower level 2
-        # 3: tower level 3
-        # 4: terminated tower
-
-        # Do some magic here to choose a position
-        my_pawn_to_move_choice = choice([my_pawn_1, my_pawn_2])
-        my_pawn_possible_moves = board.get_possible_movement_and_building_positions(
-            my_pawn_to_move_choice
-        )
-
-        if len(my_pawn_possible_moves) == 0:
-            return None, None, None
-
-        my_move_and_build_choice = choice(my_pawn_possible_moves)
-
-        my_move_position = my_move_and_build_choice[0]
-        my_build_position = my_move_and_build_choice[1]
-
-        # Return the selected pawn to move (1 or 2), the move position
-        # and the build position
-        # If my move is not valid, the tester will consider it as a forfeit
-        return my_pawn_to_move_choice.order, my_move_position, my_build_position
-```
-
-Check our random players example in [our player examples folder](./santorinai/player_examples/) to help you create your own.
-
-### 3. Test your player
-
-```python
-from santorinai import Tester, RandomPlayer
-from my_player import MyPlayer
-
-# Init the tester
-tester = Tester()
-tester.verbose_level = 2  # 0: no output, 1: Each game results, 2: Each move summary
-tester.delay_between_moves = 0.1  # Delay between each move in seconds
-tester.display_board = True  # Display a graphical view of the board in a window
-
-# Init the players
-my_player = MyPlayer(1)
-random_payer = RandomPlayer(2)
-
-# Play some games
-wins, details = tester.play_1v1(
-    player1=my_player,
-    player2=random_payer,
-    nb_games=5,
-)
-print(wins)
-print(details)
-```
-
-Output example:
-
-```
-Results:
-Player My player won 4 times (80%)
-Player Randy Random won 1 time (20%)
-
-# Wins
-{
-    "My player name": 4,
-    "Randy Random": 1,
-}
-
-# Details
-{
-    "My player name": {
-        "The player pawn reached the top of a tower.": 3,
-        "The next player is stuck, the game is over.": 1,
-    },
-    "Randy Random": {
-        "The player pawn reached the top of a tower.": 1
-    },
-}
-```
-
-Graphical output example:
-![Graphical output example](./images/board_image.png)
-
-## Board utilities
-
-We provide some utilities to help you manipulate the board.
-
-```python
-# Game information
-board.nb_players  # Number of players in the game (2 or 3)
-board.nb_pawns  # Number of pawns (4 or 6) depending on the game mode
-board.player_turn  # The number of the player currently playing (between 1 and 3)
-board.turn_number  # Number of turn played since the beginning of the game
-
-# Pawns
-board_pawns = board.pawns  # The other pawns on the board
-pawn = board_pawns[0]  # The first pawn on the board
-pawn.pos  # The position a pawn on the board (x, y), or (None, None) if it is not placed yet
-pawn.number  # The number of the  pawn on the board (between 1 and 6) depending on the game mode
-pawn.player_number  # The number of the player owning the pawn (between 1 and 3) depending on the game mode
-
-
-# Board
-board_array = board.board  # A 5x5 array of integers representing the board
-# 0: empty
-# 1: tower level 1
-# 2: tower level 2
-# 3: tower level 3
-# 4: terminated tower
-
-# Movements
-available_move_positions = board.get_possible_movement_positions(pawn)
-available_build_positions = board.get_possible_building_positions(pawn)
-
-# Board control
-board.place_pawn(pos)  # Place the current playing pawn on the board
-board.play_move(
-    pawn.order, move_position, build_position
-)  # Play a move (move and build) with the current playing pawn, and go to the next turn
-board.is_game_over()  # True if the game is over
-board.winner_player_number  # The number of the player who won the game
-
-# Other
-board.is_position_valid(position)
-board.is_move_possible(start_pos, end_pos)
-board.is_position_within_board(pos)
-board.is_position_adjacent(pos1, pos2)
-board.is_pawn_on_position(pos)
-board.is_build_possible(builder_pos, build_pos)
-board.copy()  # Create a copy of the board, useful to test moves
-print(board)  # Print the board
-
-# Display
-from santorinai.board_displayer.board_displayer import init_window, update_board
-
-window = init_window([player1.name(), player2.name()])
-update_board(window, board)
-```
-
 ## Credits
 
-Creator of Santorini: [Roxley Games](https://roxley.com/)
-
-Board 2D Gui library: [PySimpleGUI](https://www.pysimplegui.org/en/latest/)
+Santorini was created by [Roxley Games](https://roxley.com/).
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details
+Apache License 2.0, see [LICENSE](LICENSE).
 
 ## Contributors
+
 * Columbus-droid
 * LadinaM

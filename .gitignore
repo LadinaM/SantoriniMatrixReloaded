@@ -7,3 +7,4 @@ SantorinAI.egg-info/
 build/
 
 .idea/
+.venv/

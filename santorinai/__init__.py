@@ -1,7 +1,10 @@
-from .board import Board as Board
-from .pawn import Pawn as Pawn
-from .player import Player as Player
-from .player_examples.basic_player import BasicPlayer as BasicPlayer
-from .player_examples.first_choice_player import FirstChoicePlayer as FirstChoicePlayer
-from .player_examples.random_player import RandomPlayer as RandomPlayer
-from .tester import Tester as Tester
+"""
+The Santorini engine, our agents and the training environment.
+
+Nothing in here needs a screen, so it also runs on servers and Colab.
+"""
+
+from .core import NUM_ACTIONS as NUM_ACTIONS
+from .core import GameState as GameState
+from .match import play_game as play_game
+from .match import play_match as play_match
